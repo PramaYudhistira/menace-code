@@ -1,4 +1,4 @@
-// Main entry point for the Menace chat application.
+// Main entry point for the Felon chat application.
 //
 // This file handles:
 // - Terminal setup and teardown

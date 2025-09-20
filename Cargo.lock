@@ -346,6 +346,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
+name = "felon-code"
+version = "0.1.0"
+dependencies = [
+ "crossterm 0.29.0",
+ "ratatui",
+ "rig-core",
+ "tokio",
+]
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -927,16 +937,6 @@ name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
-
-[[package]]
-name = "menace-code"
-version = "0.1.0"
-dependencies = [
- "crossterm 0.29.0",
- "ratatui",
- "rig-core",
- "tokio",
-]
 
 [[package]]
 name = "mime"

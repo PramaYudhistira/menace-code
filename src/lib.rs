@@ -1,4 +1,4 @@
-// Menace - A terminal-based chat application with LLM integration
+// Felon - A terminal-based chat application with LLM integration
 //
 // Library root that exposes the public API and organizes internal modules
 

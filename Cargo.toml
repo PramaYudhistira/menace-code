@@ -1,12 +1,12 @@
 [package]
-name = "menace-code"
+name = "felon-code"
 version = "0.1.0"
 edition = "2024"
 
 
 [[bin]]
-name = "menace"
-path = "src/menace.rs"
+name = "felon"
+path = "src/felon.rs"
 
 [[bin]]
 name = "debug"
