@@ -6,11 +6,11 @@
 // - Text input handling
 // - Command dispatching
 
-use crossterm::event::{self, Event, KeyCode, KeyModifiers};
+use crossterm::event::{self, Event, KeyCode, KeyModifiers, MouseEventKind};
 use std::io;
 use std::time::{Duration, Instant};
 
-use crate::core::{App, InputMode};
+use crate::core::App;
 
 /// Events that can be returned from the event handler
 pub enum AppEvent {
@@ -21,8 +21,9 @@ pub enum AppEvent {
 }
 
 pub fn handle_events(app: &mut App) -> io::Result<AppEvent> {
-    if let Event::Key(key) = event::read()? {
-        // Handle Ctrl+C double press to quit (works in any mode)
+    match event::read()? {
+        Event::Key(key) => {
+        // Handle Ctrl+C double press to quit
         if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
             if let Some(last_press) = app.last_ctrl_c {
                 // If less than 500ms since last Ctrl+C, quit
@@ -34,55 +35,63 @@ pub fn handle_events(app: &mut App) -> io::Result<AppEvent> {
             return Ok(AppEvent::Continue);
         }
 
-        match app.input_mode {
-            InputMode::Normal => match key.code {
-                KeyCode::Char('e') => {
-                    app.input_mode = InputMode::Editing;
-                }
-                KeyCode::Char('/') => {
-                    app.input_mode = InputMode::Command;
-                    app.input.clear();
-                    app.input.push('/');
-                }
-                KeyCode::Char('q') => {
-                    return Ok(AppEvent::Quit);
-                }
-                _ => {}
-            },
-            InputMode::Editing => match key.code {
-                KeyCode::Enter => {
+        // Always in "editing" mode - handle all input
+        match key.code {
+            KeyCode::Enter => {
+                // Alt+Enter or Option+Enter adds newline
+                if key.modifiers.contains(KeyModifiers::ALT) {
+                    app.input.push('\n');
+                } else {
                     app.send_message();
                 }
-                KeyCode::Char(c) => {
-                    app.input.push(c);
+            }
+            KeyCode::Char(c) => {
+                app.input.push(c);
+            }
+            KeyCode::Backspace => {
+                app.input.pop();
+            }
+            KeyCode::Up => {
+                if key.modifiers.contains(KeyModifiers::CONTROL) {
+                    app.scroll_up(3);
                 }
-                KeyCode::Backspace => {
-                    app.input.pop();
+            }
+            KeyCode::Down => {
+                if key.modifiers.contains(KeyModifiers::CONTROL) {
+                    app.scroll_down(3);
                 }
-                KeyCode::Esc => {
-                    app.input_mode = InputMode::Normal;
+            }
+            KeyCode::PageUp => {
+                app.scroll_up(10);
+            }
+            KeyCode::PageDown => {
+                app.scroll_down(10);
+            }
+            KeyCode::Home => {
+                if key.modifiers.contains(KeyModifiers::CONTROL) {
+                    app.scroll_offset = app.messages.len().saturating_sub(1);
                 }
-                _ => {}
-            },
-            InputMode::Command => match key.code {
-                KeyCode::Esc => {
-                    app.input_mode = InputMode::Normal;
-                    app.input.clear();
+            }
+            KeyCode::End => {
+                if key.modifiers.contains(KeyModifiers::CONTROL) {
+                    app.scroll_to_bottom();
                 }
-                KeyCode::Enter => {
-                    // Process command
-                    app.input.clear();
-                    app.input_mode = InputMode::Normal;
-                }
-                KeyCode::Char(c) => {
-                    app.input.push(c);
-                }
-                KeyCode::Backspace => {
-                    app.input.pop();
-                }
-                _ => {}
-            },
+            }
+            _ => {}
         }
+        }
+        Event::Mouse(mouse) => {
+            match mouse.kind {
+                MouseEventKind::ScrollUp => {
+                    app.scroll_up(3);
+                }
+                MouseEventKind::ScrollDown => {
+                    app.scroll_down(3);
+                }
+                _ => {}
+            }
+        }
+        _ => {}
     }
     Ok(AppEvent::Continue)
 }

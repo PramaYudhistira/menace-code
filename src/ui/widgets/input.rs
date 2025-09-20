@@ -3,7 +3,7 @@
 // This widget handles the input field rendering
 
 use ratatui::{
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     widgets::Paragraph,
     Frame,
 };
@@ -14,33 +14,23 @@ use crate::core::state::InputMode;
 pub fn render_input(
     f: &mut Frame,
     input: &str,
-    mode: InputMode,
+    _mode: InputMode,
     area: ratatui::layout::Rect,
 ) {
-    let style = match mode {
-        InputMode::Normal => Style::default(),
-        InputMode::Editing => Style::default().fg(Color::Yellow),
-        InputMode::Command => Style::default().fg(Color::Magenta),
-    };
-
+    // Always use a subtle color for the input text
     let widget = Paragraph::new(input)
-        .style(style);
+        .style(Style::default().fg(Color::White));
 
     f.render_widget(widget, area);
 
-    // Set cursor position when editing
-    if mode == InputMode::Editing {
-        f.set_cursor_position((area.x + input.len() as u16, area.y));
-    }
+    // Always show cursor (handle multi-line)
+    let lines: Vec<&str> = input.lines().collect();
+    let current_line = lines.last().unwrap_or(&"");
+    let line_number = lines.len().saturating_sub(1);
+
+    let cursor_x = area.x + current_line.len() as u16;
+    let cursor_y = area.y + line_number as u16;
+
+    f.set_cursor_position((cursor_x, cursor_y));
 }
 
-/// Renders help text overlay
-pub fn render_help(f: &mut Frame, mode: InputMode, area: ratatui::layout::Rect) {
-    if mode == InputMode::Normal {
-        let help = Paragraph::new("Press 'e' to edit, 'q' to quit, '/' for commands")
-            .style(Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD));
-        f.render_widget(help, area);
-    }
-}
