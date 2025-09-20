@@ -19,8 +19,6 @@ pub struct App {
     pub input_mode: InputMode,
     /// Track last Ctrl+C press for double-press quit
     pub last_ctrl_c: Option<Instant>,
-    /// Scroll offset for chat history (0 = bottom/latest)
-    pub scroll_offset: usize,
 }
 
 impl Default for App {
@@ -30,7 +28,6 @@ impl Default for App {
             messages: Vec::new(),
             input_mode: InputMode::default(),
             last_ctrl_c: None,
-            scroll_offset: 0,
         }
     }
 }
@@ -40,25 +37,10 @@ impl App {
         let msg: String = self.input.drain(..).collect();
         if !msg.is_empty() {
             self.messages.push(Message::user(msg.clone()));
+
             // Placeholder response - will be replaced with actual RIG integration
-            self.messages.push(Message::assistant(format!("I received: '{}'", msg)));
-            // Reset scroll to bottom when new message is sent
-            self.scroll_offset = 0;
+            let response = format!("I received: '{}'", msg);
+            self.messages.push(Message::assistant(response));
         }
-    }
-
-    pub fn scroll_up(&mut self, amount: usize) {
-        self.scroll_offset = self.scroll_offset.saturating_add(amount);
-        // Cap at max messages
-        let max_offset = self.messages.len().saturating_sub(1);
-        self.scroll_offset = self.scroll_offset.min(max_offset);
-    }
-
-    pub fn scroll_down(&mut self, amount: usize) {
-        self.scroll_offset = self.scroll_offset.saturating_sub(amount);
-    }
-
-    pub fn scroll_to_bottom(&mut self) {
-        self.scroll_offset = 0;
     }
 }

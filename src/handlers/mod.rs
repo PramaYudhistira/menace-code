@@ -6,7 +6,7 @@
 // - Text input handling
 // - Command dispatching
 
-use crossterm::event::{self, Event, KeyCode, KeyModifiers, MouseEventKind};
+use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 use std::io;
 use std::time::{Duration, Instant};
 
@@ -18,6 +18,10 @@ pub enum AppEvent {
     Continue,
     /// Exit the application
     Quit,
+    /// Input changed - needs redraw
+    InputChanged,
+    /// Message sent - needs to print
+    MessageSent,
 }
 
 pub fn handle_events(app: &mut App) -> io::Result<AppEvent> {
@@ -41,56 +45,26 @@ pub fn handle_events(app: &mut App) -> io::Result<AppEvent> {
                 // Alt+Enter or Option+Enter adds newline
                 if key.modifiers.contains(KeyModifiers::ALT) {
                     app.input.push('\n');
+                    return Ok(AppEvent::InputChanged);
                 } else {
                     app.send_message();
+                    return Ok(AppEvent::MessageSent);
                 }
             }
             KeyCode::Char(c) => {
                 app.input.push(c);
+                return Ok(AppEvent::InputChanged);
             }
             KeyCode::Backspace => {
                 app.input.pop();
+                return Ok(AppEvent::InputChanged);
             }
-            KeyCode::Up => {
-                if key.modifiers.contains(KeyModifiers::CONTROL) {
-                    app.scroll_up(3);
-                }
-            }
-            KeyCode::Down => {
-                if key.modifiers.contains(KeyModifiers::CONTROL) {
-                    app.scroll_down(3);
-                }
-            }
-            KeyCode::PageUp => {
-                app.scroll_up(10);
-            }
-            KeyCode::PageDown => {
-                app.scroll_down(10);
-            }
-            KeyCode::Home => {
-                if key.modifiers.contains(KeyModifiers::CONTROL) {
-                    app.scroll_offset = app.messages.len().saturating_sub(1);
-                }
-            }
-            KeyCode::End => {
-                if key.modifiers.contains(KeyModifiers::CONTROL) {
-                    app.scroll_to_bottom();
-                }
-            }
+            // Terminal handles all scrolling - we don't manage it
             _ => {}
         }
         }
-        Event::Mouse(mouse) => {
-            match mouse.kind {
-                MouseEventKind::ScrollUp => {
-                    app.scroll_up(3);
-                }
-                MouseEventKind::ScrollDown => {
-                    app.scroll_down(3);
-                }
-                _ => {}
-            }
-        }
+        // Mouse scrolling handled by terminal
+        Event::Mouse(_) => {}
         _ => {}
     }
     Ok(AppEvent::Continue)
