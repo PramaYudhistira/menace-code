@@ -1,0 +1,19 @@
+[package]
+name = "menace-code"
+version = "0.1.0"
+edition = "2024"
+
+
+[[bin]]
+name = "menace"
+path = "src/menace.rs"
+
+[[bin]]
+name = "debug"
+path = "src/debug.rs"
+
+[dependencies]
+crossterm = "0.29.0"
+ratatui = "0.29.0"
+rig-core = "0.20.0"
+tokio = { version = "1.47.1", features = ["full"] }
